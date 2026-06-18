@@ -1,0 +1,46 @@
+Code
+ ↓
+Test
+ ↓
+Debug
+ ↓
+Validate
+ ↓
+Commit
+ ↓
+Push
+ ↓
+Clean working tree
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Conceptually the project looks like:
+
+LexiGuard AI
+
+├── FastAPI
+│
+├── GET /
+├── GET /health
+├── GET /version
+│
+└── POST /analyze
+      │
+      ├── Validate input
+      ├── Extract text
+      ├── Count words
+      ├── Count characters
+      ├── Detect legal keywords
+      └── Return JSON
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+By the end of week 3 this is the flow achieved by our project
+
+
+Frontend (Streamlit)
+        │
+        ▼
+REST API (FastAPI)
+        │
+        ▼
+Business Logic
+        │
+        ▼
+Structured JSON Response
