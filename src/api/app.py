@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+
 app = FastAPI(
     title="LexiGuard AI",
     description="AI-Powered Contract Intelligence Platform",
     version="1.0.0"
 )
+
 class ContractRequest(BaseModel):
     text: str
 
@@ -16,14 +18,12 @@ def home():
         "status": "Running"
     }
 
-
 @app.get("/health")
 def health_check():
     return {
         "status": "healthy",
         "service": "LexiGuard AI API"
     }
-
 
 @app.get("/version")
 def version():
@@ -33,87 +33,45 @@ def version():
 
 @app.post("/analyze")
 def analyze(data: ContractRequest):
-    text = data.text
+    raw_text = data.text
+    processed_text = raw_text.lower()
 
-    keywords = [
-        "agreement",
-        "terminated",
-        "termination",
-        "notice",
-        "payment",
-        "liability",
-        "confidential",
-        "warranty"
-    ]
-    clauses = []
-
-
-    text = data.text.lower()
-
+    # Consolidated Multi-keyword Mapping Logic
     clause_rules = {
-        "Termination Clause": [
-            "terminate", "terminated", "termination", "notice period", "end of agreement"
-        ],
-        "Confidentiality Clause": [
-            "confidential", "nda", "non-disclosure"
-        ],
-        "Payment Clause": [
-            "payment", "invoice", "fee", "billing"
-        ],
-        "Liability Clause": [
-            "liability", "indemnify", "damages"
-        ],
-        "Warranty Clause": [
-            "warranty", "guarantee"
-        ],
-        "Arbitration Clause": [
-            "arbitration", "dispute resolution"
-        ]
+        "Termination Clause": ["terminate", "terminated", "termination", "notice period", "end of agreement"],
+        "Confidentiality Clause": ["confidential", "nda", "non-disclosure"],
+        "Payment Clause": ["payment", "invoice", "fee", "billing"],
+        "Liability Clause": ["liability", "indemnify", "damages"],
+        "Warranty Clause": ["warranty", "guarantee"],
+        "Arbitration Clause": ["arbitration", "dispute resolution"]
     }
 
     clauses_detected = []
-
-    for clause_name, keywords in clause_rules.items():
-        if any(k in text for k in keywords):
-            clauses_detected.append(clause_name)
-
     found_keywords = []
 
-    if "termination" in text or "terminated" in text:
-        clauses.append("Termination Clause")
+    # Single efficient pass loop for detecting clauses and keywords
+    for clause_name, target_keywords in clause_rules.items():
+        clause_matched = False
+        for kw in target_keywords:
+            if kw in processed_text:
+                found_keywords.append(kw)
+                clause_matched = True
+        if clause_matched:
+            clauses_detected.append(clause_name)
 
-    if "confidential" in text:
-        clauses.append("Confidentiality Clause")
-
-    if "payment" in text:
-        clauses.append("Payment Clause")
-
-    if "liability" in text:
-        clauses.append("Liability Clause")
-
-    if "warranty" in text:
-        clauses.append("Warranty Clause")
-
-    if "arbitration" in text:
-        clauses.append("Arbitration Clause")
-
-    for keyword in keywords:
-        if keyword.lower() in text.lower():
-            found_keywords.append(keyword)
-        risk_level = "Low"
-
-        if "terminated" in found_keywords:
-            risk_level = "Medium"
-
-        if "liability" in found_keywords:
-            risk_level = "High"
+    # Clean, scoped Risk Assessment Logic
+    risk_level = "Low"
+    if any(term in found_keywords for term in ["terminate", "terminated", "termination"]):
+        risk_level = "Medium"
+    if any(term in found_keywords for term in ["liability", "indemnify", "damages"]):
+        risk_level = "High"
 
     return {
-        "received_text": data.text,
-        "word_count": len(data.text.split()),
-        "character_count": len(data.text),
-        "keywords_found": found_keywords,
-        "clauses_detected": clauses_detected,   # 🔥 THIS IS KEY
+        "received_text": raw_text,
+        "word_count": len(raw_text.split()),
+        "character_count": len(raw_text),
+        "keywords_found": list(set(found_keywords)),  # deduplicate keyword array
+        "clauses_detected": clauses_detected,   
         "risk_level": risk_level,
         "status": "Analysis complete"
     }
