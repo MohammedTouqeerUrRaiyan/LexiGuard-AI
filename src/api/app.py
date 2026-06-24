@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+
 from pydantic import BaseModel
+from fastapi import FastAPI, UploadFile, File
+from typing import Optional
 
 app = FastAPI(
     title="LexiGuard AI",
@@ -30,6 +32,16 @@ def version():
     return {
         "version": "1.0.0"
     }
+@app.post("/upload")
+async def upload_contract(file: UploadFile = File(...)):
+    
+    file_info = {
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "status": "uploaded"
+    }
+
+    return file_info
 
 @app.post("/analyze")
 def analyze(data: ContractRequest):
