@@ -25,17 +25,39 @@ text_to_analyze = ""
 
 with tab1:
     uploaded_file = st.file_uploader(
-        "Upload your legal contract document",
-        type=["txt"],
-        help="Currently supports standard plain-text (.txt) formats."
+        "Upload Contract",
+        type=["txt", "pdf", "png", "jpg", "jpeg"]
     )
+
     if uploaded_file is not None:
-        try:
+
+        st.success(f"Uploaded: {uploaded_file.name}")
+
+        file_type = uploaded_file.type
+
+        if file_type == "text/plain":
             text_to_analyze = uploaded_file.read().decode("utf-8")
-            with st.expander("👀 View Uploaded Document Content", expanded=False):
+
+            with st.expander("Preview"):
                 st.text(text_to_analyze)
-        except Exception as e:
-            st.error(f"Error reading file: {e}")
+
+        elif file_type == "application/pdf":
+
+            st.info(
+                "PDF uploaded successfully. OCR/PDF parsing integration coming soon."
+            )
+
+        elif file_type.startswith("image/"):
+
+            st.image(
+                uploaded_file,
+                caption="Uploaded Contract Image",
+                use_container_width=True
+            )
+
+            st.info(
+                "Image uploaded successfully. OCR integration coming soon."
+            )
 
 with tab2:
     contract_text = st.text_area(
