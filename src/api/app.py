@@ -1,89 +1,149 @@
-
-from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File
-from typing import Optional
+from src.ocr.ocr_pipeline import OCRPipeline
+import os
+import shutil
 
 app = FastAPI(
     title="LexiGuard AI",
-    description="AI-Powered Contract Intelligence Platform",
-    version="1.0.0"
+    description="AI Powered Contract Intelligence",
+    version="2.0"
 )
 
-class ContractRequest(BaseModel):
-    text: str
+ocr = OCRPipeline()
+
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 @app.get("/")
 def home():
     return {
         "project": "LexiGuard AI",
-        "module": "API & Integration",
         "status": "Running"
     }
 
+
 @app.get("/health")
-def health_check():
+def health():
     return {
-        "status": "healthy",
-        "service": "LexiGuard AI API"
+        "status": "Healthy"
     }
 
-@app.get("/version")
-def version():
-    return {
-        "version": "1.0.0"
-    }
-@app.post("/upload")
-async def upload_contract(file: UploadFile = File(...)):
-    
-    file_info = {
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "status": "uploaded"
-    }
-
-    return file_info
 
 @app.post("/analyze")
-def analyze(data: ContractRequest):
-    raw_text = data.text
-    processed_text = raw_text.lower()
+async def analyze(file: UploadFile = File(...)):
 
-    # Consolidated Multi-keyword Mapping Logic
+    filepath = os.path.join(
+        UPLOAD_FOLDER,
+        file.filename
+    )
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    extracted_text = ocr.extract(filepath)
+
+    processed = extracted_text.lower()
+
     clause_rules = {
-        "Termination Clause": ["terminate", "terminated", "termination", "notice period", "end of agreement"],
-        "Confidentiality Clause": ["confidential", "nda", "non-disclosure"],
-        "Payment Clause": ["payment", "invoice", "fee", "billing"],
-        "Liability Clause": ["liability", "indemnify", "damages"],
-        "Warranty Clause": ["warranty", "guarantee"],
-        "Arbitration Clause": ["arbitration", "dispute resolution"]
+
+        "Termination Clause":
+        [
+            "terminate",
+            "termination",
+            "notice period"
+        ],
+
+        "Confidentiality Clause":
+        [
+            "confidential",
+            "non-disclosure",
+            "nda"
+        ],
+
+        "Payment Clause":
+        [
+            "payment",
+            "invoice",
+            "fee"
+        ],
+
+        "Liability Clause":
+        [
+            "liability",
+            "indemnify",
+            "damages"
+        ],
+
+        "Warranty Clause":
+        [
+            "warranty",
+            "guarantee"
+        ],
+
+        "Arbitration Clause":
+        [
+            "arbitration",
+            "dispute resolution"
+        ]
     }
 
-    clauses_detected = []
-    found_keywords = []
+    clauses = []
 
-    # Single efficient pass loop for detecting clauses and keywords
-    for clause_name, target_keywords in clause_rules.items():
-        clause_matched = False
-        for kw in target_keywords:
-            if kw in processed_text:
-                found_keywords.append(kw)
-                clause_matched = True
-        if clause_matched:
-            clauses_detected.append(clause_name)
+    keywords = []
 
-    # Clean, scoped Risk Assessment Logic
-    risk_level = "Low"
-    if any(term in found_keywords for term in ["terminate", "terminated", "termination"]):
-        risk_level = "Medium"
-    if any(term in found_keywords for term in ["liability", "indemnify", "damages"]):
-        risk_level = "High"
+    for clause, words in clause_rules.items():
+
+        found = False
+
+        for word in words:
+
+            if word in processed:
+
+                keywords.append(word)
+
+                found = True
+
+        if found:
+            clauses.append(clause)
+
+    risk = "Low"
+
+    if any(
+        x in keywords
+        for x in [
+            "terminate",
+            "termination"
+        ]
+    ):
+        risk = "Medium"
+
+    if any(
+        x in keywords
+        for x in [
+            "liability",
+            "damages",
+            "indemnify"
+        ]
+    ):
+        risk = "High"
 
     return {
-        "received_text": raw_text,
-        "word_count": len(raw_text.split()),
-        "character_count": len(raw_text),
-        "keywords_found": list(set(found_keywords)),  # deduplicate keyword array
-        "clauses_detected": clauses_detected,   
-        "risk_level": risk_level,
-        "status": "Analysis complete"
+
+        "filename": file.filename,
+
+        "word_count": len(extracted_text.split()),
+
+        "character_count": len(extracted_text),
+
+        "keywords_found": list(set(keywords)),
+
+        "clauses_detected": clauses,
+
+        "risk_level": risk,
+
+        "extracted_text": extracted_text,
+
+        "status": "Analysis Complete"
+
     }
