@@ -1,107 +1,330 @@
 from src.utils.legal_rules import (
-    CLAUSE_RULES,
-    CLAUSE_EXPLANATIONS,
-    CLAUSE_RECOMMENDATIONS,
-    CLAUSE_IMPORTANCE,
-    CLAUSE_RISK_SCORE
+    CLAUSE_DATABASE,
+    REQUIRED_CLAUSES,
+    RISK_SCORE,
+    IMPORTANCE_PENALTY,
+    VERDICTS
 )
 
 
 class ContractAnalyzer:
 
-    def analyze(self, text: str):
+    def __init__(self):
+        self.clauses = CLAUSE_DATABASE
+
+    # --------------------------------------------------
+    # Detect Clauses
+    # --------------------------------------------------
+
+    def detect_clauses(self, text):
 
         processed = text.lower()
 
-        clauses_detected = []
+        detected = []
         keywords_found = []
+        clause_details = []
 
-        explanations = {}
-        recommendations = {}
+        total_risk_score = 0
 
-        total_score = 0
+        for clause_name, info in self.clauses.items():
 
-        for clause, keywords in CLAUSE_RULES.items():
+            matched_keywords = []
 
-            detected = False
+            for keyword in info["keywords"]:
 
-            for keyword in keywords:
+                if keyword.lower() in processed:
+                    matched_keywords.append(keyword)
 
-                if keyword in processed:
+            if matched_keywords:
 
-                    keywords_found.append(keyword)
-                    detected = True
+                detected.append(clause_name)
 
-            if detected:
+                keywords_found.extend(matched_keywords)
 
-                clauses_detected.append(clause)
+                total_risk_score += RISK_SCORE[info["risk"]]
 
-                explanations[clause] = CLAUSE_EXPLANATIONS[clause]
+                clause_details.append({
 
-                recommendations[clause] = CLAUSE_RECOMMENDATIONS[clause]
+                    "clause": clause_name,
 
-                total_score += CLAUSE_RISK_SCORE[clause]
+                    "risk": info["risk"],
 
-        missing_clauses = []
+                    "importance": info["importance"],
 
-        for clause in CLAUSE_IMPORTANCE:
+                    "matched_keywords": matched_keywords,
 
-            if clause not in clauses_detected:
-                missing_clauses.append(clause)
+                    "description": info["description"],
 
-        if total_score >= 15:
-            risk = "High"
+                    "recommendation": info["recommendation"]
 
-        elif total_score >= 7:
-            risk = "Medium"
+                })
+                
 
-        else:
-            risk = "Low"
+        return (
+            detected,
+            list(set(keywords_found)),
+            clause_details,
+            total_risk_score
+        )
+
+    # --------------------------------------------------
+    # Missing Clauses
+    # --------------------------------------------------
+
+    def detect_missing_clauses(self, detected):
+
+        missing = []
+
+        for clause in REQUIRED_CLAUSES:
+
+            if clause not in detected:
+
+                info = self.clauses[clause]
+
+                missing.append({
+
+                    "clause": clause,
+
+                    "importance": info["importance"],
+
+                    "description": info["description"],
+
+                    "recommendation": info["recommendation"]
+
+                })
+
+        return missing
+
+    # --------------------------------------------------
+    # Risk
+    # --------------------------------------------------
+
+    def calculate_risk(self, score):
+
+        if score >= 40:
+            return "High"
+
+        if score >= 20:
+            return "Medium"
+
+        return "Low"
+
+    # --------------------------------------------------
+    # Contract Health
+    # --------------------------------------------------
+
+    def calculate_health(self, missing, risk):
 
         health = 100
 
-        health -= len(missing_clauses) * 8
+        for clause in missing:
+
+            health -= IMPORTANCE_PENALTY[clause["importance"]]
 
         if risk == "Medium":
             health -= 10
 
-        if risk == "High":
+        elif risk == "High":
             health -= 20
 
-        health = max(0, health)
+        return max(0, min(100, health))
 
-        if health >= 85:
-            summary = "Excellent contract with strong legal protections."
+    # --------------------------------------------------
+    # Verdict
+    # --------------------------------------------------
 
-        elif health >= 70:
-            summary = "Good contract but improvements are recommended."
+    def generate_verdict(self, health):
 
-        elif health >= 50:
-            summary = "Contract contains several legal weaknesses."
+        for verdict, (low, high) in VERDICTS.items():
 
-        else:
-            summary = "High-risk contract. Legal review strongly recommended."
+            if low <= health <= high:
+                return verdict
+
+        return "Needs Review"
+
+    # --------------------------------------------------
+    # Executive Summary
+    # --------------------------------------------------
+
+    def generate_summary(
+
+        self,
+        detected,
+        missing,
+        risk,
+        verdict
+
+    ):
+
+        summary = (
+            f"The contract contains {len(detected)} recognised legal clauses "
+            f"and is missing {len(missing)} recommended clauses. "
+            f"The overall legal risk is assessed as {risk}. "
+            f"Overall contract quality is rated '{verdict}'."
+        )
+
+        return summary
+
+    # --------------------------------------------------
+    # Warnings
+    # --------------------------------------------------
+
+    def generate_warnings(self, detected):
+
+        warnings = []
+
+        if "Liability Clause" in detected:
+
+            warnings.append(
+                "Review liability obligations carefully. They may expose one party to significant financial responsibility."
+            )
+
+        if "Termination Clause" in detected:
+
+            warnings.append(
+                "Verify termination conditions and notice period."
+            )
+
+        if "Payment Clause" in detected:
+
+            warnings.append(
+                "Verify payment schedule, penalties and reimbursement terms."
+            )
+
+        if "Confidentiality Clause" in detected:
+
+            warnings.append(
+                "Ensure confidentiality obligations continue after contract termination."
+            )
+
+        return warnings
+
+    # --------------------------------------------------
+    # Overall Recommendations
+    # --------------------------------------------------
+
+    def overall_recommendations(self, missing):
+
+        recommendations = []
+
+        for clause in missing:
+
+            recommendations.append(
+                f"Add a {clause['clause']}."
+            )
+
+        if not recommendations:
+            recommendations.append(
+                "No major contractual weaknesses detected."
+            )
+
+        return recommendations
+
+    # --------------------------------------------------
+    # Main Analysis
+    # --------------------------------------------------
+
+    def analyze(self, text):
+
+        (
+            detected,
+            keywords,
+            clause_details,
+            risk_score
+
+        ) = self.detect_clauses(text)
+
+        missing = self.detect_missing_clauses(detected)
+
+        risk = self.calculate_risk(risk_score)
+
+        health = self.calculate_health(
+            missing,
+            risk
+        )
+
+        verdict = self.generate_verdict(health)
+
+        summary = self.generate_summary(
+            detected,
+            missing,
+            risk,
+            verdict
+        )
+
+        warnings = self.generate_warnings(detected)
+
+        recommendations = self.overall_recommendations(
+            missing
+        )
 
         return {
 
-            "word_count": len(text.split()),
+            "document": {
 
-            "character_count": len(text),
+                "word_count": len(text.split()),
 
-            "risk_level": risk,
+                "character_count": len(text)
 
-            "contract_health": health,
+            },
 
-            "summary": summary,
+            "analysis": {
 
-            "clauses_detected": clauses_detected,
+                "risk_level": risk,
 
-            "missing_clauses": missing_clauses,
+                "contract_health": health,
 
-            "keywords_found": list(set(keywords_found)),
+                "contract_score": health,
 
-            "clause_explanations": explanations,
+                "verdict": verdict,
 
-            "recommendations": recommendations
+                "summary": summary
+
+            },
+
+            "statistics": {
+
+                "detected_clauses": len(detected),
+
+                "missing_clauses": len(missing),
+
+                "keywords_found": len(keywords)
+
+            },
+
+            "clauses": {
+
+                "detected": clause_details,
+
+                "missing": missing
+
+            },
+
+            "keywords_found": keywords,
+
+            "warnings": warnings,
+
+            "overall_recommendations": recommendations
 
         }
+    # --------------------------------------------------
+    # Risk Factors
+    # --------------------------------------------------
+
+    def generate_risk_factors(self, detected_clauses):
+
+        factors = []
+
+        high_risk = {
+            "Liability Clause",
+            "Termination Clause",
+            "Intellectual Property Clause",
+            "Data Privacy Clause",
+            "Non-Compete Clause"
+        }
+
+        for clause in detected_clauses:
+            if clause in high_risk:
+                factors.append(clause)
+
+        return factors

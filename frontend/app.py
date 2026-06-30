@@ -1,9 +1,9 @@
 import streamlit as st
 import requests
 
-# ============================================
+# ==========================================================
 # Page Configuration
-# ============================================
+# ==========================================================
 
 st.set_page_config(
     page_title="LexiGuard AI",
@@ -11,38 +11,41 @@ st.set_page_config(
     layout="wide"
 )
 
-# ============================================
+# ==========================================================
 # Header
-# ============================================
+# ==========================================================
 
 st.title("⚖️ LexiGuard AI")
 st.caption("AI-Powered Contract Intelligence Platform")
 st.markdown("---")
 
-# ============================================
+# ==========================================================
 # Upload Section
-# ============================================
+# ==========================================================
 
 uploaded_file = st.file_uploader(
     "Upload Contract",
-    type=["txt", "pdf", "png", "jpg", "jpeg"],
-    help="Supported formats: TXT, PDF, PNG, JPG, JPEG"
+    type=["pdf", "txt", "png", "jpg", "jpeg"],
+    help="Supported formats: PDF, TXT, PNG, JPG, JPEG"
 )
 
 if uploaded_file:
 
     st.success("File uploaded successfully.")
 
-    col1, col2, col3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
-    col1.metric("Filename", uploaded_file.name)
+    c1.metric(
+        "Filename",
+        uploaded_file.name
+    )
 
-    col2.metric(
+    c2.metric(
         "Size",
         f"{uploaded_file.size/1024:.2f} KB"
     )
 
-    col3.metric(
+    c3.metric(
         "Type",
         uploaded_file.type
     )
@@ -51,25 +54,27 @@ if uploaded_file:
 
         st.image(
             uploaded_file,
-            caption="Uploaded Contract",
             use_container_width=True
         )
 
     elif uploaded_file.type == "text/plain":
 
-        preview = uploaded_file.getvalue().decode("utf-8")
-
         with st.expander("Preview Uploaded Text"):
 
-            st.text(preview)
+            st.text(
+                uploaded_file.getvalue().decode("utf-8")
+            )
 
-# ============================================
+# ==========================================================
 # Analyze Button
-# ============================================
+# ==========================================================
 
 st.write("")
 
-if st.button("🚀 Analyze Contract", use_container_width=True):
+if st.button(
+    "🚀 Analyze Contract",
+    use_container_width=True
+):
 
     if uploaded_file is None:
 
@@ -119,59 +124,105 @@ if st.button("🚀 Analyze Contract", use_container_width=True):
 
             st.stop()
 
-# ============================================
-# Results
-# ============================================
+    # ==========================================================
+    # Overall Analysis
+    # ==========================================================
+
+    analysis = result["analysis"]
+    document = result["document"]
+    statistics = result["statistics"]
 
     st.success("Analysis Complete!")
 
-    risk = result["risk_level"]
+    st.markdown("---")
 
-    if risk == "High":
-
-        st.error("🔴 HIGH RISK")
-
-    elif risk == "Medium":
-
-        st.warning("🟠 MEDIUM RISK")
-
-    else:
-
-        st.success("🟢 LOW RISK")
-
-    # ============================================
-    # Statistics
-    # ============================================
-
-    st.subheader("📊 Document Statistics")
-
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
 
     c1.metric(
-        "Word Count",
-        result["word_count"]
+        "Contract Score",
+        f'{analysis["contract_score"]}/100'
     )
 
     c2.metric(
-        "Character Count",
-        result["character_count"]
+        "Risk Level",
+        analysis["risk_level"]
     )
 
-    # ============================================
-    # Clauses / Keywords
-    # ============================================
+    c3.metric(
+        "Verdict",
+        analysis["verdict"]
+    )
+
+    st.progress(
+        analysis["contract_health"] / 100
+    )
+
+    st.markdown("### Executive Summary")
+
+    st.info(
+        analysis["summary"]
+    )
+
+    st.markdown("---")
+
+    # ==========================================================
+    # Statistics
+    # ==========================================================
+
+    st.subheader("📊 Document Statistics")
+
+    a, b, c, d = st.columns(4)
+
+    a.metric(
+        "Words",
+        document["word_count"]
+    )
+
+    b.metric(
+        "Characters",
+        document["character_count"]
+    )
+
+    c.metric(
+        "Detected Clauses",
+        statistics["detected_clauses"]
+    )
+
+    d.metric(
+        "Missing Clauses",
+        statistics["missing_clauses"]
+    )
+
+    # ==========================================================
+    # Clause Analysis
+    # ==========================================================
+
+    st.markdown("---")
 
     left, right = st.columns(2)
 
     with left:
 
-        st.subheader("📑 Clauses Detected")
+        st.subheader("✅ Detected Clauses")
 
-        if result["clauses_detected"]:
+        if result["clauses"]["detected"]:
+            st.write(result["clauses"]["detected"])
+            
+            for clause in result["clauses"]["detected"]:
 
-            for clause in result["clauses_detected"]:
+                with st.expander(clause["clause"]):
 
-                st.success(clause)
+                    st.write(
+                        f'**Importance:** {clause["importance"]}'
+                    )
+
+                    st.write(
+                        f'**Description:** {clause["description"]}'
+                    )
+
+                    st.write(
+                        f'**Recommendation:** {clause["recommendation"]}'
+                    )
 
         else:
 
@@ -179,24 +230,117 @@ if st.button("🚀 Analyze Contract", use_container_width=True):
 
     with right:
 
-        st.subheader("🔑 Keywords")
+        st.subheader("❌ Missing Clauses")
 
-        if result["keywords_found"]:
+        if result["clauses"]["missing"]:
 
-            for word in result["keywords_found"]:
+            for clause in result["clauses"]["missing"]:
 
-                st.info(word)
+                with st.expander(clause["clause"]):
+
+                    st.write(
+                        f'**Importance:** {clause["importance"]}'
+                    )
+
+                    st.write(
+                        f'**Description:** {clause["description"]}'
+                    )
+
+                    st.write(
+                        f'**Recommendation:** {clause["recommendation"]}'
+                    )
 
         else:
 
-            st.info("No keywords detected.")
+            st.success("No important clauses missing.")
 
-    # ============================================
+    # ==========================================================
+    # Risk Factors
+    # ==========================================================
+
+    st.markdown("---")
+
+    st.subheader("⚠ Risk Factors")
+
+    if result["risk_factors"]:
+
+        for factor in result["risk_factors"]:
+
+            st.warning(factor)
+
+    else:
+
+        st.success("No significant legal risks detected.")
+
+    # ==========================================================
+    # Legal Warnings
+    # ==========================================================
+
+    st.subheader("🚨 Legal Warnings")
+
+    if result["warnings"]:
+
+        for warning in result["warnings"]:
+
+            st.warning(warning)
+
+    else:
+
+        st.success("No warnings generated.")
+
+    # ==========================================================
+    # Keywords
+    # ==========================================================
+
+    st.markdown("---")
+
+    st.subheader("🔑 Keywords Found")
+
+    if result["keywords_found"]:
+
+        cols = st.columns(4)
+
+        for index, word in enumerate(result["keywords_found"]):
+
+            cols[index % 4].success(word)
+
+    else:
+
+        st.info("No keywords found.")
+
+    # ==========================================================
+    # Named Entities
+    # ==========================================================
+
+    st.markdown("---")
+
+    st.subheader("🏷 Named Entities")
+
+    entities = result.get(
+        "entities_detected",
+        {}
+    )
+
+    if entities:
+
+        st.json(entities)
+
+    else:
+
+        st.info("No legal entities detected.")
+
+    # ==========================================================
     # OCR Output
-    # ============================================
+    # ==========================================================
+
+    st.markdown("---")
 
     st.subheader("📄 Extracted Contract")
 
-    with st.expander("View Extracted Text", expanded=False):
+    with st.expander(
+        "View OCR Extracted Text"
+    ):
 
-        st.text(result["extracted_text"])
+        st.text(
+            result["extracted_text"]
+        )

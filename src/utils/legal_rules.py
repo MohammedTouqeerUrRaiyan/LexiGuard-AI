@@ -4,19 +4,22 @@ LexiGuard AI
 Legal Knowledge Base
 =========================================================
 
-This file contains the legal intelligence used by
-ContractAnalyzer.
+This module acts as the central legal intelligence layer.
 
-Each clause contains:
+Every legal clause contains:
 
-1. Detection keywords
-2. Risk level
-3. Description
-4. Recommendation
-5. Importance Score
+• Detection keywords
+• Risk category
+• Importance level
+• Description
+• Recommendation
 
-=========================================================
+Nothing outside this file should hardcode legal rules.
 """
+
+# ==========================================================
+# Contract Clause Database
+# ==========================================================
 
 CLAUSE_DATABASE = {
 
@@ -28,20 +31,19 @@ CLAUSE_DATABASE = {
             "terminated",
             "notice period",
             "end of agreement",
-            "employment ends",
-            "resignation",
-            "dismissal"
+            "dismissal",
+            "resignation"
         ],
 
         "risk": "Medium",
 
-        "importance": 10,
+        "importance": "High",
 
         "description":
-            "Defines how either party may legally terminate the agreement.",
+        "Defines how either party may legally terminate the agreement.",
 
         "recommendation":
-            "Specify notice period, termination conditions, resignation process, severance obligations and termination for cause."
+        "Clearly define notice period, termination for cause, resignation process and severance obligations."
 
     },
 
@@ -58,13 +60,13 @@ CLAUSE_DATABASE = {
 
         "risk": "Low",
 
-        "importance": 8,
+        "importance": "High",
 
         "description":
-            "Protects confidential company information from unauthorized disclosure.",
+        "Protects confidential information from unauthorized disclosure.",
 
         "recommendation":
-            "Define confidential information, confidentiality duration and permitted disclosures."
+        "Specify confidential information, confidentiality duration and permitted disclosures."
 
     },
 
@@ -72,25 +74,25 @@ CLAUSE_DATABASE = {
 
         "keywords": [
             "payment",
-            "invoice",
             "salary",
-            "compensation",
-            "fee",
+            "invoice",
             "billing",
-            "remuneration",
+            "fee",
+            "compensation",
             "bonus",
-            "allowance"
+            "allowance",
+            "remuneration"
         ],
 
         "risk": "Low",
 
-        "importance": 9,
+        "importance": "High",
 
         "description":
-            "Defines financial obligations between the parties.",
+        "Defines financial obligations between parties.",
 
         "recommendation":
-            "Clearly specify payment amount, payment schedule, penalties and reimbursement terms."
+        "Clearly specify payment amount, due dates, penalties and reimbursement terms."
 
     },
 
@@ -99,22 +101,22 @@ CLAUSE_DATABASE = {
         "keywords": [
             "liability",
             "liable",
-            "damages",
             "indemnify",
             "indemnification",
+            "damages",
             "losses",
             "claims"
         ],
 
         "risk": "High",
 
-        "importance": 10,
+        "importance": "High",
 
         "description":
-            "Determines legal responsibility for damages and financial losses.",
+        "Determines legal responsibility for losses or damages.",
 
         "recommendation":
-            "Clearly define liability limits, exclusions and indemnification obligations."
+        "Clearly define liability limits, exclusions and indemnification responsibilities."
 
     },
 
@@ -129,13 +131,13 @@ CLAUSE_DATABASE = {
 
         "risk": "Medium",
 
-        "importance": 7,
+        "importance": "Medium",
 
         "description":
-            "Specifies guarantees regarding products, services or employment obligations.",
+        "Defines warranties or guarantees regarding products or services.",
 
         "recommendation":
-            "Define warranty duration, limitations and exclusions."
+        "Clearly define warranty duration, exclusions and claim procedures."
 
     },
 
@@ -151,13 +153,13 @@ CLAUSE_DATABASE = {
 
         "risk": "Low",
 
-        "importance": 7,
+        "importance": "Medium",
 
         "description":
-            "Explains how disputes between parties will be resolved.",
+        "Specifies how legal disputes will be resolved.",
 
         "recommendation":
-            "Specify arbitration rules, location, governing institution and appeal process."
+        "Specify arbitration rules, institution, governing law and venue."
 
     },
 
@@ -165,22 +167,22 @@ CLAUSE_DATABASE = {
 
         "keywords": [
             "force majeure",
-            "act of god",
+            "natural disaster",
             "pandemic",
             "earthquake",
             "war",
-            "natural disaster"
+            "act of god"
         ],
 
         "risk": "Low",
 
-        "importance": 8,
+        "importance": "High",
 
         "description":
-            "Protects parties from liability during extraordinary unforeseen events.",
+        "Protects parties from liability during extraordinary unforeseen events.",
 
         "recommendation":
-            "Clearly define qualifying events and notification requirements."
+        "Clearly define qualifying events and notification procedures."
 
     },
 
@@ -189,19 +191,19 @@ CLAUSE_DATABASE = {
         "keywords": [
             "governing law",
             "jurisdiction",
-            "applicable law",
-            "court of law"
+            "court of law",
+            "applicable law"
         ],
 
         "risk": "Low",
 
-        "importance": 8,
+        "importance": "High",
 
         "description":
-            "Specifies which country's or state's laws govern the agreement.",
+        "Specifies which jurisdiction governs the contract.",
 
         "recommendation":
-            "Clearly identify governing jurisdiction and legal venue."
+        "Clearly identify governing jurisdiction and legal venue."
 
     },
 
@@ -218,36 +220,36 @@ CLAUSE_DATABASE = {
 
         "risk": "Medium",
 
-        "importance": 9,
+        "importance": "Medium",
 
         "description":
-            "Defines ownership of inventions, code, documents and creative work.",
+        "Defines ownership of inventions, software and creative work.",
 
         "recommendation":
-            "Clarify ownership of work products and licensing rights."
+        "Clarify ownership rights, licensing and future usage."
 
     },
 
     "Data Privacy Clause": {
 
         "keywords": [
-            "data privacy",
-            "personal data",
             "gdpr",
-            "privacy policy",
+            "ccpa",
+            "privacy",
+            "personal data",
             "data protection",
             "sensitive information"
         ],
 
         "risk": "Medium",
 
-        "importance": 8,
+        "importance": "High",
 
         "description":
-            "Explains how personal or sensitive information will be collected and protected.",
+        "Explains how personal information is collected and protected.",
 
         "recommendation":
-            "Include compliance with GDPR, CCPA or applicable privacy regulations."
+        "Include compliance with GDPR, CCPA and applicable privacy regulations."
 
     },
 
@@ -262,13 +264,13 @@ CLAUSE_DATABASE = {
 
         "risk": "Medium",
 
-        "importance": 7,
+        "importance": "Medium",
 
         "description":
-            "Restricts employees from working for competitors after employment.",
+        "Restricts employees from joining competitors.",
 
         "recommendation":
-            "Specify duration, geographical scope and business limitations."
+        "Clearly specify geographical scope and duration."
 
     },
 
@@ -277,28 +279,27 @@ CLAUSE_DATABASE = {
         "keywords": [
             "non solicitation",
             "non-solicitation",
-            "solicit employees",
-            "solicit customers"
+            "solicit customers",
+            "solicit employees"
         ],
 
         "risk": "Low",
 
-        "importance": 6,
+        "importance": "Low",
 
         "description":
-            "Prevents parties from soliciting employees or customers.",
+        "Restricts solicitation of employees or customers.",
 
         "recommendation":
-            "Clearly define restricted activities and duration."
+        "Define restricted activities and applicable duration."
 
     }
 
 }
 
-
-# ============================================================
+# ==========================================================
 # Required Clauses
-# ============================================================
+# ==========================================================
 
 REQUIRED_CLAUSES = [
 
@@ -310,18 +311,17 @@ REQUIRED_CLAUSES = [
 
     "Liability Clause",
 
-    "Governing Law Clause",
-
     "Force Majeure Clause",
+
+    "Governing Law Clause",
 
     "Data Privacy Clause"
 
 ]
 
-
-# ============================================================
-# Risk Scoring
-# ============================================================
+# ==========================================================
+# Numerical Risk Scores
+# ==========================================================
 
 RISK_SCORE = {
 
@@ -333,10 +333,23 @@ RISK_SCORE = {
 
 }
 
+# ==========================================================
+# Importance Penalties
+# ==========================================================
 
-# ============================================================
-# Overall Verdict Thresholds
-# ============================================================
+IMPORTANCE_PENALTY = {
+
+    "High": 15,
+
+    "Medium": 8,
+
+    "Low": 4
+
+}
+
+# ==========================================================
+# Overall Contract Grades
+# ==========================================================
 
 VERDICTS = {
 
@@ -344,8 +357,10 @@ VERDICTS = {
 
     "Good": (75, 89),
 
-    "Needs Review": (50, 74),
+    "Needs Review": (60, 74),
 
-    "High Risk": (0, 49)
+    "High Risk": (40, 59),
+
+    "Critical": (0, 39)
 
 }
