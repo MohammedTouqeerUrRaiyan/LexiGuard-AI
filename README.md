@@ -28,7 +28,6 @@ The primary goals of LexiGuard AI are to:
 - Build a scalable API for contract analysis.
 
 ---
-
 ## 📊 Dataset
 
 ### Contract Understanding Atticus Dataset (CUAD)
@@ -50,11 +49,9 @@ The dataset will be used for:
 ## 🛠 Technology Stack
 
 ### Programming
-
 - Python
 
 ### NLP & Machine Learning
-
 - spaCy
 - Hugging Face Transformers
 - PyTorch
@@ -65,7 +62,6 @@ The dataset will be used for:
 - pdf2image
 
 ### Semantic Search
-
 - LangChain
 - Pinecone / Milvus
 
@@ -134,7 +130,6 @@ LexiGuard-AI/
 ├── requirements.txt
 └── LICENSE
 ```
-
 ---
 
 ## 🚀 Development Roadmap
