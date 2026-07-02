@@ -262,7 +262,7 @@ if st.button(
 
     st.subheader("⚠ Risk Factors")
 
-    if result["risk_factors"]:
+    if result.get("risk_factors"):
 
         for factor in result["risk_factors"]:
 
