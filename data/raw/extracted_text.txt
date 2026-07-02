@@ -36,4 +36,4 @@ Junior 3.821 1.12 Ideation Advanced 5 False 16.65 3 Allowed_With_Citation 9 3.69
 False 10.35 5 Strict_Ban 9 3.499 73.93 Medium 3 100004 Business Senior 3.789 1.82
 Copywriting/Drafting Intermediate 4 False 15.23 2 Allowed_With_Citation 2 4.000
 63.58 Medium 4 100005 STEM Sophomore 3.635 9.29 Debugging/Troubleshooting Advanced 4
-False 12.55 4 Allowed_With_Citation 4 3.798 100.00 Medium
+False 12.55 4 Allowed_With_Citation 4 3.798 100.00 Medium.
