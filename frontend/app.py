@@ -135,29 +135,41 @@ if st.button(
     st.success("Analysis Complete!")
 
     st.markdown("---")
+    # ==========================================================
+    # Executive Dashboard
+    # ==========================================================
 
-    c1, c2, c3 = st.columns(3)
+    st.subheader("📈 Executive Dashboard")
 
-    c1.metric(
-        "Contract Score",
+    score_col, risk_col, verdict_col = st.columns(3)
+
+    score_col.metric(
+        "📊 Contract Score",
         f'{analysis["contract_score"]}/100'
     )
 
-    c2.metric(
-        "Risk Level",
-        analysis["risk_level"]
-    )
+    risk = analysis["risk_level"]
 
-    c3.metric(
-        "Verdict",
+    if risk == "High":
+        risk_col.error(f"🔴 {risk}")
+
+    elif risk == "Medium":
+        risk_col.warning(f"🟠 {risk}")
+
+    else:
+        risk_col.success(f"🟢 {risk}")
+
+    verdict_col.metric(
+        "⚖ Final Verdict",
         analysis["verdict"]
     )
 
     st.progress(
-        analysis["contract_health"] / 100
+        analysis["contract_health"] / 100,
+        text=f'Overall Contract Health : {analysis["contract_health"]}%'
     )
 
-    st.markdown("### Executive Summary")
+    st.markdown("### 📝 Executive Summary")
 
     st.info(
         analysis["summary"]
