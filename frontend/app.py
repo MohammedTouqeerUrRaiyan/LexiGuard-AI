@@ -181,30 +181,31 @@ if st.button(
     # Statistics
     # ==========================================================
 
-    st.subheader("📊 Document Statistics")
+    st.subheader("📊 Document Overview")
 
-    a, b, c, d = st.columns(4)
+    stats1, stats2, stats3, stats4 = st.columns(4)
 
-    a.metric(
-        "Words",
+    stats1.metric(
+        "📄 Words",
         document["word_count"]
     )
 
-    b.metric(
-        "Characters",
+    stats2.metric(
+        "🔤 Characters",
         document["character_count"]
     )
 
-    c.metric(
-        "Detected Clauses",
+    stats3.metric(
+        "✅ Clauses Found",
         statistics["detected_clauses"]
     )
 
-    d.metric(
-        "Missing Clauses",
+    stats4.metric(
+        "❌ Missing",
         statistics["missing_clauses"]
     )
 
+    st.markdown("---")
     # ==========================================================
     # Clause Analysis
     # ==========================================================
