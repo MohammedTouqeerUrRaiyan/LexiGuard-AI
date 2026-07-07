@@ -6,5 +6,5 @@ def ocr (image_path):
     # Perform OCR using pytesseract
     text = pytesseract.image_to_string(image)
     return text
-
+#improvise code
 
