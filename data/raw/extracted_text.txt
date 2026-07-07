@@ -23,7 +23,7 @@ Skill_ Retention Score
 
 Burnout_Risk_Level
 
-First 5 Records (Sample)
+First 5 Records (Sample for descriptive statistics)
 
 Student_ID Major_Category Year_of_Study Pre_Semester_GPA Weekly _GenAI_Hours
 Primary_Use_Case Prompt_Engineering_Skill Tool_Diversity Paid_Subscription
