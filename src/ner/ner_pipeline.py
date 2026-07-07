@@ -1,3 +1,4 @@
+#NER module update
 import spacy
 import en_core_web_md  # Direct import to bypass Windows shortcut/symlink issues
 from typing import List, Dict, Any
