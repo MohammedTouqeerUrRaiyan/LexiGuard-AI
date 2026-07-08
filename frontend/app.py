@@ -8,7 +8,8 @@ import requests
 st.set_page_config(
     page_title="LexiGuard AI",
     page_icon="⚖️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 # ==========================================================
@@ -17,14 +18,29 @@ st.set_page_config(
 
 st.title("⚖️ LexiGuard AI")
 st.caption("AI-Powered Contract Intelligence Platform")
-st.markdown("---")
+
+st.markdown(
+    """
+Analyze legal contracts using AI.
+
+Features:
+- OCR Extraction
+- Clause Detection
+- Risk Assessment
+- Semantic Search
+- Named Entity Recognition
+- Contract Health Score
+"""
+)
+
+st.divider()
 
 # ==========================================================
-# Upload Section
+# Upload Contract
 # ==========================================================
 
 uploaded_file = st.file_uploader(
-    "Upload Contract",
+    label="Upload Contract",
     type=["pdf", "txt", "png", "jpg", "jpeg"],
     help="Supported formats: PDF, TXT, PNG, JPG, JPEG"
 )
@@ -33,22 +49,25 @@ if uploaded_file:
 
     st.success("File uploaded successfully.")
 
-    c1, c2, c3 = st.columns(3)
+    col1, col2, col3 = st.columns(3)
 
-    c1.metric(
-        "Filename",
-        uploaded_file.name
-    )
+    with col1:
+        st.metric(
+            "Filename",
+            uploaded_file.name
+        )
 
-    c2.metric(
-        "Size",
-        f"{uploaded_file.size/1024:.2f} KB"
-    )
+    with col2:
+        st.metric(
+            "Size",
+            f"{uploaded_file.size / 1024:.2f} KB"
+        )
 
-    c3.metric(
-        "Type",
-        uploaded_file.type
-    )
+    with col3:
+        st.metric(
+            "File Type",
+            uploaded_file.type
+        )
 
     if uploaded_file.type.startswith("image/"):
 
@@ -64,6 +83,8 @@ if uploaded_file:
             st.text(
                 uploaded_file.getvalue().decode("utf-8")
             )
+
+st.divider()
 
 # ==========================================================
 # Analyze Button
@@ -357,3 +378,13 @@ if st.button(
         st.text(
             result["extracted_text"]
         )
+    
+    st.subheader("🧠 Semantic Clause Matches")
+
+    for match in result["semantic_matches"]:
+
+        with st.expander(
+            f"{match['metadata']['clause']} ({match['similarity']}%)"
+        ):
+
+            st.write(match["document"])

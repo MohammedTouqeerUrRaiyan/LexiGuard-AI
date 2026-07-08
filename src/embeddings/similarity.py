@@ -46,52 +46,38 @@ class SimilarityEngine:
 
     def most_similar(
         self,
-        query: str,
-        documents: list
+        query,
+        documents,
+        embeddings=None
     ):
-        """
-        Finds the most similar document.
-        """
 
-        query_embedding = self.embedding_model.encode(query)
-
-        document_embeddings = self.embedding_model.encode_batch(
-            documents
+        ranked = self.rank_documents(
+            query,
+            documents,
+            embeddings
         )
 
-        similarities = cosine_similarity(
-            [query_embedding],
-            document_embeddings
-        )[0]
-
-        best_index = np.argmax(similarities)
-
-        return {
-
-            "document": documents[best_index],
-
-            "similarity": round(float(similarities[best_index]) * 100, 2),
-
-            "index": int(best_index)
-
-        }
-
+        return ranked[0]
     # --------------------------------------------------
 
     def rank_documents(
         self,
         query: str,
-        documents: list
+        documents: list,
+        embeddings=None
     ):
         """
-        Returns every document ranked by similarity.
-        """
+        Rank documents by cosine similarity.
 
+        If embeddings are already available,
+        reuse them instead of encoding again.
+        """
+        print("Query =", query)
+        print("Type  =", type(query))
         query_embedding = self.embedding_model.encode(query)
 
-        embeddings = self.embedding_model.encode_batch(
-            documents
-        )
+        if embeddings is None:
+            embeddings = self.embedding_model.encode_batch(documents)
 
         scores = cosine_similarity(
             [query_embedding],
@@ -100,25 +86,21 @@ class SimilarityEngine:
 
         ranked = []
 
-        for doc, score in zip(documents, scores):
+        for i, score in enumerate(scores):
 
             ranked.append({
 
-                "document": doc,
+                "document": documents[i],
 
-                "similarity": round(
-                    float(score) * 100,
-                    2
-                )
+                "similarity": round(float(score) * 100, 2),
+
+                "index": i
 
             })
 
         ranked.sort(
-
             key=lambda x: x["similarity"],
-
             reverse=True
-
         )
 
         return ranked

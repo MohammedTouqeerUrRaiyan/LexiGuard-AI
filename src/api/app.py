@@ -1,3 +1,4 @@
+from src.embeddings.semantic_search import SemanticSearch
 from fastapi import FastAPI, UploadFile, File
 from src.ocr.ocr_pipeline import OCRPipeline
 from src.ner.ner_pipeline import LegalNERPipeline
@@ -19,6 +20,7 @@ app = FastAPI(
 ocr = OCRPipeline()
 ner = LegalNERPipeline()
 analyzer = ContractAnalyzer()
+semantic_search = SemanticSearch()
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -71,7 +73,10 @@ async def analyze_contract(file: UploadFile = File(...)):
     extracted_text = ocr.extract(filepath)
 
     if not extracted_text.strip():
-
+        print("=" * 60)
+        print("API RESPONSE")
+        print("=" * 60)
+        print(analysis.keys())
         return {
             "status": "Failed",
             "message": "No readable text found."
@@ -92,6 +97,29 @@ async def analyze_contract(file: UploadFile = File(...)):
     analysis = analyzer.analyze(
         extracted_text
     )
+    semantic_search.load_documents(
+
+        [
+
+            {
+                "text": clause["description"],
+                "metadata": {
+                    "clause": clause["clause"]
+                }
+            }
+
+            for clause in analysis["clauses"]["detected"]
+
+        ]
+
+    )
+    semantic_matches = semantic_search.search(
+
+        extracted_text,
+
+        top_k=5
+
+    )
 
     # ---------------------------------------
     # Final Response
@@ -99,14 +127,16 @@ async def analyze_contract(file: UploadFile = File(...)):
 
     return {
 
-        "status": "Analysis Complete",
+            "status": "Analysis Complete",
 
-        "filename": file.filename,
+            "filename": file.filename,
 
-        "entities_detected": entities,
+            "entities_detected": entities,
 
-        "extracted_text": extracted_text,
+            "extracted_text": extracted_text,
 
-        **analysis
+            "semantic_matches": semantic_matches,
 
-    }
+            **analysis
+
+        }

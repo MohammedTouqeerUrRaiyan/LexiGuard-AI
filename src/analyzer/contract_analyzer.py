@@ -1,3 +1,4 @@
+from src.embeddings.semantic_search import SemanticSearch
 from src.clause_classifier.classifier import ClauseClassifier
 from src.utils.legal_rules import (
     IMPORTANCE_PENALTY,
@@ -11,6 +12,8 @@ class ContractAnalyzer:
     def __init__(self):
 
         self.classifier = ClauseClassifier()
+
+        #self.semantic_search = SemanticSearch()
 
     # -------------------------------------------------------
     # Risk Score
