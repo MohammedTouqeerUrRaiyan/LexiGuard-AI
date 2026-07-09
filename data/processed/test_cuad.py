@@ -10,7 +10,7 @@ os.makedirs(PROCESSED_DIR, exist_ok=True)
 print("🔄 Fetching CUAD instance from Hugging Face cache...")
 dataset = load_dataset("theatticusproject/cuad", verification_mode="no_checks")
 
-# Grab the first contract asset row entry
+# store the first contract asset row entry in a variable 
 item = dataset['train'][0]
 pdf_data = item['pdf']
 
