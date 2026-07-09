@@ -26,7 +26,7 @@ if source_path and os.path.exists(source_path):
     
     extracted_text = []
     total_pages = 0
-    
+ #with automatically closes the pdf after processing
     with pdfplumber.open(source_path) as pdf:
         total_pages = len(pdf.pages)
         for page_num, page in enumerate(pdf.pages, start=1):
