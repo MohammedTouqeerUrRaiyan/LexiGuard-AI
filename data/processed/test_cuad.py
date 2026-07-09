@@ -15,6 +15,7 @@ item = dataset['train'][0]
 pdf_data = item['pdf']
 
 # Handle custom Hugging Face PDF object structural layers cleanly
+#use try and except for convenience
 try:
     # Read the direct internal path attribute of the HF PDF object
     source_path = getattr(pdf_data, 'path', None)
