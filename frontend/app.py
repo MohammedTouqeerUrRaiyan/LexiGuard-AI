@@ -126,7 +126,7 @@ if st.button(
             st.error(e)
 
             st.stop()
-
+#authentication enabled for file check
     # ==========================================================
     # Overall Analysis
     # ==========================================================
