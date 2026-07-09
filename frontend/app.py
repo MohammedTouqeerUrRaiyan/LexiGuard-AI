@@ -6,11 +6,13 @@ import requests
 #configure streamlit title
 # ==========================================================
 #adding application icon
+
 st.set_page_config(
     page_title="LexiGuard AI",
     page_icon="⚖️",
     layout="wide"
 )
+#enabled wide layout for UI
 # ==========================================================
 # Header
 # ==========================================================
