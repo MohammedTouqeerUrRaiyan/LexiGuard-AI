@@ -5,7 +5,7 @@ import requests
 # Page Configuration
 #configure streamlit title
 # ==========================================================
-
+#adding application icon
 st.set_page_config(
     page_title="LexiGuard AI",
     page_icon="⚖️",
