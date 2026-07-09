@@ -31,7 +31,7 @@ uploaded_file = st.file_uploader(
     help="Supported formats: PDF, TXT, PNG, JPG, JPEG"
 )
 #included multiple file formats
-
+#added help option
 if uploaded_file:
 
     st.success("File uploaded successfully.")
