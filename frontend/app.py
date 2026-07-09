@@ -67,7 +67,7 @@ if uploaded_file:
             st.text(
                 uploaded_file.getvalue().decode("utf-8")
             )
-
+#added preview file
 # ==========================================================
 # Analyze Button
 # ==========================================================
