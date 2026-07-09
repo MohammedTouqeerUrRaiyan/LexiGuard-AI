@@ -30,6 +30,7 @@ uploaded_file = st.file_uploader(
     type=["pdf", "txt", "png", "jpg", "jpeg"],
     help="Supported formats: PDF, TXT, PNG, JPG, JPEG"
 )
+#included multiple file formats
 
 if uploaded_file:
 
