@@ -51,7 +51,7 @@ if uploaded_file:
     c3.metric(
         "Type",
         uploaded_file.type
-    )
+    )#displayed file info like type and size
 
     if uploaded_file.type.startswith("image/"):
 
