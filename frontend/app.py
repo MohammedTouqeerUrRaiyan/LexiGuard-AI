@@ -78,7 +78,7 @@ if st.button(
     "🚀 Analyze Contract",
     use_container_width=True
 ):
-
+#created contract analysis trigger
     if uploaded_file is None:
 
         st.error("Please upload a contract.")
