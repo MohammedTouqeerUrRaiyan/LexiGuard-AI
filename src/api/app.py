@@ -1,5 +1,5 @@
-from src.embeddings.semantic_search import SemanticSearch
 from fastapi import FastAPI, UploadFile, File
+from src.embeddings.semantic_search import SemanticSearch
 from src.ocr.ocr_pipeline import OCRPipeline
 from src.ner.ner_pipeline import LegalNERPipeline
 from src.analyzer.contract_analyzer import ContractAnalyzer
@@ -26,12 +26,11 @@ UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ----------------------------------------------------
-# Routes
+# Base Routes
 # ----------------------------------------------------
 
 @app.get("/")
 def home():
-
     return {
         "project": "LexiGuard AI",
         "version": "3.0",
@@ -41,7 +40,6 @@ def home():
 
 @app.get("/health")
 def health():
-
     return {
         "status": "Healthy"
     }
@@ -54,89 +52,46 @@ def health():
 @app.post("/analyze")
 async def analyze_contract(file: UploadFile = File(...)):
 
-    # ---------------------------------------
-    # Save uploaded file
-    # ---------------------------------------
-
-    filepath = os.path.join(
-        UPLOAD_FOLDER,
-        file.filename
-    )
-
+    # 1. Save uploaded file safely
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # ---------------------------------------
-    # OCR
-    # ---------------------------------------
-
+    # 2. Extract text using OCR Pipeline
     extracted_text = ocr.extract(filepath)
 
-    if not extracted_text.strip():
-        print("=" * 60)
-        print("API RESPONSE")
-        print("=" * 60)
-        print(analysis.keys())
+    if not extracted_text or not extracted_text.strip():
         return {
             "status": "Failed",
-            "message": "No readable text found."
+            "message": "No readable text found or document is blank."
         }
 
-    # ---------------------------------------
-    # Named Entity Recognition
-    # ---------------------------------------
+    # 3. Named Entity Recognition
+    entities = ner.extract_entities(extracted_text)
 
-    entities = ner.extract_entities(
-        extracted_text
-    )
+    # 4. Contract Intelligence Analysis
+    analysis = analyzer.analyze(extracted_text)
+    
+    # 5. Populate and run Semantic Search
+    semantic_search.load_documents([
+        {
+            "text": clause["description"],
+            "metadata": {"clause": clause["clause"]}
+        }
+        for clause in analysis.get("clauses", {}).get("detected", [])
+    ])
+    
+    semantic_matches = semantic_search.search(extracted_text, top_k=5)
 
-    # ---------------------------------------
-    # Contract Intelligence
-    # ---------------------------------------
-
-    analysis = analyzer.analyze(
-        extracted_text
-    )
-    semantic_search.load_documents(
-
-        [
-
-            {
-                "text": clause["description"],
-                "metadata": {
-                    "clause": clause["clause"]
-                }
-            }
-
-            for clause in analysis["clauses"]["detected"]
-
-        ]
-
-    )
-    semantic_matches = semantic_search.search(
-
-        extracted_text,
-
-        top_k=5
-
-    )
-
-    # ---------------------------------------
-    # Final Response
-    # ---------------------------------------
-
+    # 6. Structured Final Response (No massive raw data leaks)
     return {
-
-            "status": "Analysis Complete",
-
-            "filename": file.filename,
-
-            "entities_detected": entities,
-
-            "extracted_text": extracted_text,
-
-            "semantic_matches": semantic_matches,
-
-            **analysis
-
+        "status": "Analysis Complete",
+        "filename": file.filename,
+        "entities_detected": entities,
+        "semantic_matches": semantic_matches,
+        "analysis_results": {
+            "detected_clauses": analysis.get("clauses", {}).get("detected", []),
+            "missing_clauses": analysis.get("statistics", {}).get("missing_clauses", 0),
+            "risk_score": analysis.get("risk_score", "Low")
         }
+    }

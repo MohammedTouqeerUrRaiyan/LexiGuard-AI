@@ -98,293 +98,165 @@ if st.button(
 ):
 
     if uploaded_file is None:
-
         st.error("Please upload a contract.")
-
         st.stop()
 
     with st.spinner("Running OCR and AI Analysis..."):
-
         try:
-
             files = {
-
                 "file": (
-
                     uploaded_file.name,
-
                     uploaded_file.getvalue(),
-
                     uploaded_file.type
-
                 )
-
             }
 
             response = requests.post(
-
                 "http://127.0.0.1:8000/analyze",
-
                 files=files,
-
                 timeout=120
-
             )
 
             if response.status_code != 200:
-
                 st.error(response.text)
-
                 st.stop()
 
             result = response.json()
+            
+            # Check if backend gracefully failed (e.g. blank document)
+            if result.get("status") == "Failed":
+                st.error(result.get("message", "Analysis failed."))
+                st.stop()
 
         except Exception as e:
-
             st.error(e)
-
             st.stop()
 
     # ==========================================================
-    # Overall Analysis
+    # Alignment with Secure Backend Data Model
     # ==========================================================
-
-    analysis = result["analysis"]
-    document = result["document"]
-    statistics = result["statistics"]
+    analysis_results = result.get("analysis_results", {})
+    detected_clauses = analysis_results.get("detected_clauses", [])
+    missing_count = analysis_results.get("missing_clauses", 0)
+    risk_score = analysis_results.get("risk_score", "Low")
+    
+    # Safely extract missing metadata details if provided, fallback safely
+    missing_clauses = analysis_results.get("missing_clauses_details", [])
 
     st.success("Analysis Complete!")
-
     st.markdown("---")
+
     # ==========================================================
     # Executive Dashboard
     # ==========================================================
-
     st.subheader("📈 Executive Dashboard")
 
-    score_col, risk_col, verdict_col = st.columns(3)
+    score_col, risk_col = st.columns(2)
+
+    # Calculate an automated score metrics based on structural gaps
+    total_clauses = len(detected_clauses) + missing_count
+    health_percentage = int((len(detected_clauses) / total_clauses) * 100) if total_clauses > 0 else 100
 
     score_col.metric(
-        "📊 Contract Score",
-        f'{analysis["contract_score"]}/100'
+        "📊 Structural Integrity",
+        f'{health_percentage}/100'
     )
 
-    risk = analysis["risk_level"]
-
-    if risk == "High":
-        risk_col.error(f"🔴 {risk}")
-
-    elif risk == "Medium":
-        risk_col.warning(f"🟠 {risk}")
-
+    if risk_score == "High":
+        risk_col.error(f"🔴 Risk Level: {risk_score}")
+    elif risk_score == "Medium":
+        risk_col.warning(f"🟠 Risk Level: {risk_score}")
     else:
-        risk_col.success(f"🟢 {risk}")
-
-    verdict_col.metric(
-        "⚖ Final Verdict",
-        analysis["verdict"]
-    )
+        risk_col.success(f"🟢 Risk Level: {risk_score}")
 
     st.progress(
-        analysis["contract_health"] / 100,
-        text=f'Overall Contract Health : {analysis["contract_health"]}%'
-    )
-
-    st.markdown("### 📝 Executive Summary")
-
-    st.info(
-        analysis["summary"]
+        health_percentage / 100,
+        text=f'Overall Contract Health Profile: {health_percentage}%'
     )
 
     st.markdown("---")
 
     # ==========================================================
-    # Statistics
+    # Document Overview Metrics
     # ==========================================================
-
     st.subheader("📊 Document Overview")
 
-    stats1, stats2, stats3, stats4 = st.columns(4)
+    stats1, stats2 = st.columns(2)
 
     stats1.metric(
-        "📄 Words",
-        document["word_count"]
+        "✅ Clauses Found",
+        len(detected_clauses)
     )
 
     stats2.metric(
-        "🔤 Characters",
-        document["character_count"]
-    )
-
-    stats3.metric(
-        "✅ Clauses Found",
-        statistics["detected_clauses"]
-    )
-
-    stats4.metric(
-        "❌ Missing",
-        statistics["missing_clauses"]
+        "❌ Missing Segments",
+        missing_count
     )
 
     st.markdown("---")
-    # ==========================================================
-    # Clause Analysis
-    # ==========================================================
 
-    st.markdown("---")
-
+    # ==========================================================
+    # Clause Analysis Display
+    # ==========================================================
     left, right = st.columns(2)
 
     with left:
-
         st.subheader("✅ Detected Clauses")
 
-        if result["clauses"]["detected"]:
-            st.write(result["clauses"]["detected"])
-            
-            for clause in result["clauses"]["detected"]:
-
-                with st.expander(clause["clause"]):
-
-                    st.write(
-                        f'**Importance:** {clause["importance"]}'
-                    )
-
-                    st.write(
-                        f'**Description:** {clause["description"]}'
-                    )
-
-                    st.write(
-                        f'**Recommendation:** {clause["recommendation"]}'
-                    )
-
+        if detected_clauses:
+            for clause in detected_clauses:
+                # Fallback to direct keys if structured as dictionary objects
+                clause_title = clause.get("clause", "Unknown Clause")
+                with st.expander(clause_title):
+                    st.write(f'**Importance:** {clause.get("importance", "N/A")}')
+                    st.write(f'**Description:** {clause.get("description", "No summary text provided.")}')
+                    st.write(f'**Recommendation:** {clause.get("recommendation", "None")}')
         else:
-
-            st.info("No clauses detected.")
+            st.info("No explicit structural clauses detected.")
 
     with right:
-
         st.subheader("❌ Missing Clauses")
 
-        if result["clauses"]["missing"]:
-
-            for clause in result["clauses"]["missing"]:
-
-                with st.expander(clause["clause"]):
-
-                    st.write(
-                        f'**Importance:** {clause["importance"]}'
-                    )
-
-                    st.write(
-                        f'**Description:** {clause["description"]}'
-                    )
-
-                    st.write(
-                        f'**Recommendation:** {clause["recommendation"]}'
-                    )
-
+        if missing_clauses:
+            for clause in missing_clauses:
+                with st.expander(clause.get("clause", "Required Element")):
+                    st.write(f'**Importance:** {clause.get("importance", "High")}')
+                    st.write(f'**Description:** {clause.get("description", "Omitted requirement.")}')
+                    st.write(f'**Recommendation:** {clause.get("recommendation", "Incorporate this missing term.")}')
+        elif missing_count > 0:
+            st.warning(f"⚠️ {missing_count} essential legal protections are absent from this text.")
         else:
-
-            st.success("No important clauses missing.")
+            st.success("All crucial structural terms are present.")
 
     # ==========================================================
-    # Risk Factors
+    # Named Entities (Safe Extraction)
     # ==========================================================
+    #st.markdown("---")
+    #st.subheader("🏷 Named Entities Detected")
 
+    #entities = result.get("entities_detected", {})
+    #if entities:
+     #   st.json(entities)
+    #else:
+     #   st.info("No crucial entities (parties, jurisdictions, dates) detected.")
+
+    # ==========================================================
+    # Brain Search Matches
+    # ==========================================================
     st.markdown("---")
-
-    st.subheader("⚠ Risk Factors")
-
-    if result.get("risk_factors"):
-
-        for factor in result["risk_factors"]:
-
-            st.warning(factor)
-
-    else:
-
-        st.success("No significant legal risks detected.")
-
-    # ==========================================================
-    # Legal Warnings
-    # ==========================================================
-
-    st.subheader("🚨 Legal Warnings")
-
-    if result["warnings"]:
-
-        for warning in result["warnings"]:
-
-            st.warning(warning)
-
-    else:
-
-        st.success("No warnings generated.")
-
-    # ==========================================================
-    # Keywords
-    # ==========================================================
-
-    st.markdown("---")
-
-    st.subheader("🔑 Keywords Found")
-
-    if result["keywords_found"]:
-
-        cols = st.columns(4)
-
-        for index, word in enumerate(result["keywords_found"]):
-
-            cols[index % 4].success(word)
-
-    else:
-
-        st.info("No keywords found.")
-
-    # ==========================================================
-    # Named Entities
-    # ==========================================================
-
-    st.markdown("---")
-
-    st.subheader("🏷 Named Entities")
-
-    entities = result.get(
-        "entities_detected",
-        {}
-    )
-
-    if entities:
-
-        st.json(entities)
-
-    else:
-
-        st.info("No legal entities detected.")
-
-    # ==========================================================
-    # OCR Output
-    # ==========================================================
-
-    st.markdown("---")
-
-    st.subheader("📄 Extracted Contract")
-
-    with st.expander(
-        "View OCR Extracted Text"
-    ):
-
-        st.text(
-            result["extracted_text"]
-        )
-    
     st.subheader("🧠 Semantic Clause Matches")
 
-    for match in result["semantic_matches"]:
+    semantic_matches = result.get("semantic_matches", [])
+    if semantic_matches:
+        for match in semantic_matches:
+            clause_name = match.get('metadata', {}).get('clause', 'Clause Match')
+            score = match.get('similarity', match.get('score', 0))
+            
+            # Format similarity score if presented as a float
+            if isinstance(score, float) and score <= 1.0:
+                score = round(score * 100, 2)
 
-        with st.expander(
-            f"{match['metadata']['clause']} ({match['similarity']}%)"
-        ):
-
-            st.write(match["document"])
+            with st.expander(f"🔍 {clause_name} (Match: {score}%)"):
+                st.write(match.get("text", match.get("document", "Context text missing.")))
+    else:
+        st.info("No contextually relevant vector embedding matches found.")
