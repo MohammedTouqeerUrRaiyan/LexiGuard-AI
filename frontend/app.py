@@ -24,7 +24,7 @@ st.markdown("---")
 # ==========================================================
 # Upload Section
 # ==========================================================
-
+#added fileupload content
 uploaded_file = st.file_uploader(
     "Upload Contract",
     type=["pdf", "txt", "png", "jpg", "jpeg"],
