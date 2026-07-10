@@ -1,0 +1,71 @@
+LexiGuard-AI/
+│
+├── frontend/
+│   ├── app.py
+│   ├── components/
+│   │   ├── dashboard.py
+│   │   ├── clause_view.py
+│   │   ├── semantic_view.py
+│   │   ├── entity_view.py
+│   │   └── recommendations.py
+│   └── assets/
+│
+├── src/
+│
+│   ├── api/
+│   │   └── app.py
+│   │
+│   ├── analyzer/
+│   │   ├── contract_analyzer.py
+│   │   ├── risk_engine.py
+│   │   ├── health_engine.py
+│   │   ├── recommendation_engine.py
+│   │   └── summary_engine.py
+│   │
+│   ├── clause_classifier/
+│   │   ├── classifier.py
+│   │   ├── clause_database.py
+│   │   └── keyword_matcher.py
+│   │
+│   ├── embeddings/
+│   │   ├── embedding_model.py
+│   │   ├── vector_store.py
+│   │   ├── similarity.py
+│   │   ├── semantic_search.py
+│   │   └── utils.py
+│   │
+│   ├── ner/
+│   │   ├── ner_pipeline.py
+│   │   ├── entity_formatter.py
+│   │   └── patterns.py
+│   │
+│   ├── ocr/
+│   │   ├── ocr_pipeline.py
+│   │   ├── pdf_reader.py
+│   │   ├── image_reader.py
+│   │   └── preprocessing.py
+│   │
+│   ├── rag/
+│   │   ├── clause_chunker.py
+│   │   ├── retriever.py
+│   │   ├── reranker.py
+│   │   └── prompt_builder.py
+│   │
+│   ├── services/
+│   │   ├── analysis_service.py
+│   │   ├── semantic_service.py
+│   │   └── document_service.py
+│   │
+│   ├── utils/
+│   │   ├── legal_rules.py
+│   │   ├── constants.py
+│   │   └── helpers.py
+│   │
+│   └── models/
+│       ├── request_models.py
+│       └── response_models.py
+│
+├── uploads/
+├── tests/
+├── requirements.txt
+└── README.md
