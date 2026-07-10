@@ -14,7 +14,9 @@ class OCRPipeline:
     def extract_from_image(self, image_path: str):
 
         if not os.path.exists(image_path):
-            raise FileNotFoundError(image_path)
+            raise FileNotFoundError(
+    f"Image not found: {image_path}"
+)
 
         image = cv2.imread(image_path)
 
