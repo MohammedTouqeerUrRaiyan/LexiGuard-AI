@@ -38,7 +38,12 @@ class OCRPipeline:
 
         return text.strip()
 
+    config = "--oem 3 --psm 6"
 
+    text = pytesseract.image_to_string(
+    gray,
+    config=config
+)
     def extract_from_pdf(self, pdf_path: str):
 
         if not os.path.exists(pdf_path):
