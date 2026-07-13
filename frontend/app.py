@@ -196,49 +196,73 @@ if st.button(
     st.markdown("---")
 
     # ==========================================================
-    # Clause Analysis Display
+    # Clause Analysis Display (Sprint 1 Refactored Layout)
     # ==========================================================
     left, right = st.columns(2)
 
     with left:
         st.subheader("✅ Detected Clauses")
+        st.write("")
 
         if detected_clauses:
             for clause in detected_clauses:
-                # Fallback to direct keys if structured as dictionary objects
                 clause_title = clause.get("clause", "Unknown Clause")
-                with st.expander(clause_title):
-                    st.write(f'**Importance:** {clause.get("importance", "N/A")}')
-                    st.write(f'**Description:** {clause.get("description", "No summary text provided.")}')
-                    st.write(f'**Recommendation:** {clause.get("recommendation", "None")}')
+                
+                # Using custom headers and sub-metrics for Step 2 Target Layout
+                st.markdown(f"#### {clause_title}")
+                
+                c_col1, c_col2 = st.columns(2)
+                with c_col1:
+                    st.caption("Confidence")
+                    st.markdown(f"**{clause.get('confidence', 0)}%**")
+                with c_col2:
+                    st.caption("Matched Keywords")
+                    keywords = clause.get("matched_keywords", [])
+                    if keywords:
+                        st.markdown(" ".join([f"`{kw}`" for kw in keywords]))
+                    else:
+                        st.markdown("*None*")
+                
+                st.caption("Matched Text")
+                st.info(f'"{clause.get("matched_text", "No specific clause snippet matched.")}"')
+                
+                st.caption("Description")
+                st.write(clause.get("description", "No summary text provided."))
+                
+                st.caption("Recommendation")
+                st.write(clause.get("recommendation", "None"))
+                
+                st.markdown("---")
         else:
             st.info("No explicit structural clauses detected.")
 
     with right:
         st.subheader("❌ Missing Clauses")
+        st.write("")
 
         if missing_clauses:
             for clause in missing_clauses:
-                with st.expander(clause.get("clause", "Required Element")):
-                    st.write(f'**Importance:** {clause.get("importance", "High")}')
-                    st.write(f'**Description:** {clause.get("description", "Omitted requirement.")}')
-                    st.write(f'**Recommendation:** {clause.get("recommendation", "Incorporate this missing term.")}')
+                # Step 1 Target Layout matching markdown specifications
+                st.markdown(f"#### ⚠ {clause.get('clause', 'Required Element')}")
+                
+                st.caption("Importance")
+                imp = clause.get("importance", "High")
+                if imp == "High":
+                    st.markdown(f"🔴 **{imp}**")
+                else:
+                    st.markdown(f"🟡 **{imp}**")
+                    
+                st.caption("Description")
+                st.write(clause.get("description", "Omitted requirement."))
+                
+                st.caption("Recommendation")
+                st.write(clause.get("recommendation", "Incorporate this missing term."))
+                
+                st.markdown("---")
         elif missing_count > 0:
             st.warning(f"⚠️ {missing_count} essential legal protections are absent from this text.")
         else:
             st.success("All crucial structural terms are present.")
-
-    # ==========================================================
-    # Named Entities (Safe Extraction)
-    # ==========================================================
-    #st.markdown("---")
-    #st.subheader("🏷 Named Entities Detected")
-
-    #entities = result.get("entities_detected", {})
-    #if entities:
-     #   st.json(entities)
-    #else:
-     #   st.info("No crucial entities (parties, jurisdictions, dates) detected.")
 
     # ==========================================================
     # Brain Search Matches
